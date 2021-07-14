@@ -43,7 +43,7 @@ def stats_to_df(stats_path):
             pd.DataFrame(block_stats).assign(chrm=chrm, strand=strand)
         )
 
-    return pd.concat(to_concat)
+    return pd.concat(to_concat).rename({'pos': 'pos_zb'}, axis=1)
 
 
 def run(args):
