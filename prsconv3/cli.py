@@ -13,6 +13,7 @@ ENGINE_LIST = [
     'per_read_stats',
     'stats',
     'browser_files',
+    'fasta',
     # 'fast5_dir',
 ]
 
