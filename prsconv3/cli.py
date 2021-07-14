@@ -24,12 +24,6 @@ HELP = "which kind of input file to convert to CSV"
 subparsers = parser.add_subparsers(help=HELP, dest='which_kind')
 
 # Import all the engine modules and call the "register" method on each one
-for engine in ENGINE_LIST:
-    import_module('.engines.' + engine)
-    locals()['engines.' + engine].register(subparsers)
-
-args = parser.parse_args()
-
-# Send args to to the engine. It will take things from here.
-if args.which_kind:
-    locals()['engines.' + args.which_kind].run(args)
+engine_dict = {name: import_module('engines.' + name) for name in ENGINE_LIST}
+for engine in engine_dict.values():
+    engine.register(subparsers)

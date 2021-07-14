@@ -11,7 +11,8 @@ def register(subparsers):
     '''
     Add a subparser to the provided subparsers object
     '''
-    parser = subparsers.add_subparser(help='.tombo.per_read_stats files')
+    parser = subparsers.add_parser('per_read_stats',
+                                   help='.tombo.per_read_stats files')
 
     parser.add_argument('wide_or_long', help='Export data in wide for or long '
                         + 'form', metavar='LONG_OR_WIDE', type=str,
@@ -33,27 +34,28 @@ def register(subparsers):
                         metavar='STRAND', default='+', type=str)
 
     parser.add_argument('--start', help='Beginning of the genomic region for '
-                        'which you want statistics (DEFAULT: 0)', metavar='START',
-                        default=0, type=int)
+                        'which you want statistics (DEFAULT: 0)',
+                        metavar='START', default=0, type=int)
 
     parser.add_argument('--end', help='End of the genomic region for which you '
                         + 'want statistics (DEFAULT: 1,000,000,000)',
                         metavar='END', default=10**9, type=int)
 
 
-def recarray_to_series(recarray):
+def recarray_to_df(recarray):
     '''Convert record array output from tombo.tombo_stats.PerReadStatistics
-    into a pandas series with a two level index ['read_id', 'pos'] named
-    "stat"'''
+    into a one-column pandas dataframe with a two-level index ['read_id',
+    'pos'] named "stat"'''
     return (
         pd.DataFrame(recarray)
         .set_index(['read_id', 'pos'])
-        .rename('stat')
+        .rename({'pos': 'pos_zb'}, axis=1)
+        .rename_axis('stat', axis=1)
     )
 
 
-def series_to_csv(series, output_path, wide_or_long):
-    '''Print series output from recarray_to_series to a CSV file at output_path.
+def df_to_csv(series, output_path, wide_or_long):
+    '''Print dataframe output from recarray_to_series to a CSV file at output_path.
 
     If wide_to_long == 'wide', the output CSV will have a row for every read and
     a column for every position. Otherwise, if wide_to_long == 'long', the
@@ -64,6 +66,7 @@ def series_to_csv(series, output_path, wide_or_long):
         # extraneous labelling information from the table before we export to CSV
         (
             series
+            .rename_axis('stat_level', axis=1)
             .unstack('pos')
             .stack('stat_level')
             .reset_index('stat_level', drop=True)
@@ -72,11 +75,12 @@ def series_to_csv(series, output_path, wide_or_long):
     elif wide_or_long == 'long':
         series.to_csv(output_path)
     else:
-        raise NotImplementedError, \
-            f'"{wide_or_long}" not valid. Supported options: "wide" and "long"'
+        raise NotImplementedError(
+            f'"{wide_or_long}" not valid. Supported options: "wide" and "long"')
 
 
 def run(args):
+    global pd
     import pandas as pd
     from tombo import tombo_helper, tombo_stats
     
@@ -88,5 +92,5 @@ def run(args):
     )
     prs_recarray = tombo_stats.PerReadStats(args.prs_path) \
                    .get_region_per_read_stats(reg)
-    series = recarray_to_series(prs_recarray)
-    series_to_csv(series, wide_or_long=args.wide_or_long)
+    df = recarray_to_df(prs_recarray)
+    df_to_csv(df, wide_or_long=args.wide_or_long, output_path=args.output_path)
