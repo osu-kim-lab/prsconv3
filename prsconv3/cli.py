@@ -11,7 +11,7 @@ from importlib import import_module
 
 ENGINE_LIST = [
     'per_read_stats',
-    # 'stats',
+    'stats',
     'browser_files',
     # 'fast5_dir',
 ]
