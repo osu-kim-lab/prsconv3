@@ -12,7 +12,7 @@ from importlib import import_module
 ENGINE_LIST = [
     'per_read_stats',
     # 'stats',
-    # 'browser_files',
+    'browser_files',
     # 'fast5_dir',
 ]
 
