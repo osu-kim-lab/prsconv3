@@ -26,7 +26,7 @@ To run this code, navigate to the directory that contains this README. Then type
 > python . stats tests/files/stats/23456_WT_cellular.tombo.stats out.csv
 > ```
 
-_Note_: To run this script from another filepath, the user must replace "`.`" with the path to the directory that contains this README file. For example, the user might run `/fs/project/PAS1405/kimmel/projects/prsconv3`.
+_Note_: To run this script from another filepath, the user must replace "`.`" with the path to the directory that contains this README file. For example, the user might run `python /fs/project/PAS1405/kimmel/projects/prsconv3 --help`.
 
 ## Roadmap
 - [x] Start with prscovn2.py. Update its CLI in a way that makes sense for a tool that will accept multiple kinds of file input, not just `.tombo.per_read_stats` files. Make the user specify long or wide-format output for `.tombo.per_read_stats` files.
