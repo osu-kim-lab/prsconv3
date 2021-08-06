@@ -14,7 +14,7 @@ ENGINE_LIST = [
     'stats',
     'browser_files',
     'fasta',
-    # 'fast5_dir',
+    'events',
 ]
 
 DESC = "Convert Tombo files to CSV files"

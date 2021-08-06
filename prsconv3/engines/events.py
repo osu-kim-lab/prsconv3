@@ -7,6 +7,10 @@ Chris Kimmel
 chris.kimmel@live.com
 '''
 
+
+# pylint: disable=invalid-name,global-statement,import-outside-toplevel
+
+
 from warnings import warn
 from inspect import cleandoc
 
@@ -36,10 +40,6 @@ def register(subparsers):
         help='Only reads mapped to this chromosome will appear in output',
         default='truncated_hiv_rna_genome')
 
-    parser.add_argument('output_path', help='Path of the CSV file to be '
-        'written (including the .csv extension)', metavar='OUTPUT-FILEPATH',
-        type=str)
-
     parser.add_argument('--corr-grp', metavar='CORRECTED-GROUP',
         help='Which corrected group of the fast5 files should be read',
         default='RawGenomeCorrected_000')
@@ -47,21 +47,92 @@ def register(subparsers):
     parser.add_argument('fast5_dirs', help='The fast5 directories to read.',
         metavar='FAST5-DIRS', nargs='+')
 
+    parser.add_argument('output_path', help='Path of the CSV file to be '
+        'written (including the .csv extension)', metavar='OUTPUT-FILEPATH',
+        type=str)
 
-def run(args):
-    global tombo_helper, pd
+
+def read_to_df(read, slots_to_import, corr_grp):
+    '''
+    This is a wrapper for tombo_helper.get_multiple_slots_read_centric().  In
+    addition to the returned value of get_multiple_slots_read_centric(), this
+    subroutine also returns read_id and a zero-based positional index.
+
+    Arguments:
+        read:
+            a tombo_helper.readData object
+        slots_to_import:
+            slots from the events table to fetch
+            (valid values: norm_mean, norm_stdev, start, length, base)
+        corr_grp:
+            which corrected group of the fast5 file to fetch results from
+
+    Returns:
+        pandas dataframe:
+            The index is a zero-based genomic position. There is one column for
+            every slot in slots_to_import, plus a "read_id" column
+    '''
+    global np, tombo_helper, pd
+    import numpy as np
+    import pandas as pd
     from tombo import tombo_helper
+
+    # Care must be taken to avoid reversing the events table along the genomic-
+    # position axis. See https://nanoporetech.github.io/tombo/rna.html
+
+    read_id = read.read_id
+    index_0b = np.arange(read.start, read.end)
+    slot_contents = zip(*tombo_helper.get_multiple_slots_read_centric(read,
+        SLOTS_TO_IMPORT, corr_grp))
+
+    return (
+        pd.DataFrame(slot_contents, columns=slots_to_import)
+        .assign(read_id=read_id.decode())
+        .set_index(index_0b)
+        .rename_axis('pos_0b')
+    )
+
+
+def read_list_to_df(read_list, slots_to_import, corr_grp):
+    '''
+    Arguments:
+        read_list:
+            list of tombo_helper.readData objects
+        slots_to_import:
+            slots from the events table to fetch
+            (valid values: norm_mean, norm_stdev, start, length, base)
+        corr_grp:
+            which corrected group of the fast5 file to fetch results from
+
+    Returns:
+        pandas dataframe:
+            The index is a zero-based genomic position. There is one column for
+            every slot in slots_to_import, plus a "read_id" column
+    '''
+    global pd
     import pandas as pd
 
-    MESS = '''This module is still under development.'''
-    warn(cleandoc(MESS))
+    return pd.concat(
+        read_to_df(read, slots_to_import, corr_grp)
+        for read in read_list
+    )
 
-    reads_index = tombo_helper.TomboReads(args.fast5_dirs)
-    cs_reads = reads_index.get_cs_reads(args.chrm, args.strand)
-    slot_contents = [tombo_helper.get_multiple_slots_read_centric(read,
-        SLOTS_TO_IMPORT, None) for read in cs_reads]
 
-    # TODO: Use the mapped_start and mapped_end attributes of the corrected group to assign genomic position numbers
-    # TODO: Add read IDs
-    results = pd.DataFrame(dict(zip(SLOTS_TO_IMPORT, slot_contents)))
-    results.to_csv(args.output_path)
+def run(args):
+    '''This subroutine is called when the user selects the "events" module
+    from the command line.'''
+
+    global tombo_helper, pd, np
+    from tombo import tombo_helper
+    import numpy as np
+    import pandas as pd
+
+    cs_reads = (
+        tombo_helper.TomboReads(args.fast5_dirs)
+        .get_cs_reads(args.chrm, args.strand)
+    )
+
+    (
+        read_list_to_df(cs_reads, SLOTS_TO_IMPORT, args.corr_grp)
+        .to_csv(args.output_path)
+    )
