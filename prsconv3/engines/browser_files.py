@@ -15,7 +15,7 @@ def register(subparsers):
     user will access the functionality of this module.'''
 
     parser = subparsers.add_parser('browser_files',
-        description='.wig and .bed files (streams from stdin to stdout)')
+        help='.wig and .bed files (streams from stdin to stdout)')
     
     parser.add_argument('wig_or_bed', metavar='WIG_OR_BED',
         choices=['wig', 'bed'], help='Which type of file to expect '\

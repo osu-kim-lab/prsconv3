@@ -14,7 +14,7 @@ def register(subparsers):
     '''Add a subcommand to the given subparsers object. The subcommand will
     expose the functionality of this module via the command-line.
     '''
-    parser = subparsers.add_parser('stats', description='.tombo.stats files')
+    parser = subparsers.add_parser('stats', help='.tombo.stats files')
 
     parser.add_argument('stats_path', help='Path of the .tombo.stats '
                         + 'file', metavar='STATS-FILEPATH', type=str)

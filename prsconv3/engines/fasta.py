@@ -14,7 +14,7 @@ def register(subparsers):
     methods in this module via the command-line interface.'''
 
     parser = subparsers.add_parser('fasta',
-        description='.fasta files (streams from stdin to stdout)')
+        help='.fasta files (streams from stdin to stdout)')
 
 
 def fasta_to_list_of_triples(inbuffer):

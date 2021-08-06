@@ -30,7 +30,8 @@ def register(subparsers):
     methods in this module via the command-line interface.'''
 
     parser = subparsers.add_parser('events',
-        help='fast5 events tables (this includes dwell times)')
+        help='fast5 events tables from directories of fast5 files (this '
+            'includes dwell times)')
 
     parser.add_argument('--strand', metavar='STRAND', default='+',
         choices=['+', '-'], help='Only reads mapped to this strand will appear '
