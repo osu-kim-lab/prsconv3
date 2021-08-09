@@ -30,7 +30,7 @@ _Note_: To run this script from another filepath, the user must replace "`.`" wi
 
 ## Bugs
 
-Please report any bugs in this library on the GitHub issues page (https://github.com/Chris-Kimmel/prsconv3/issues). Even if they don't get fixed, it's helpful to have a list of everything wrong with the code. Poorly documented features also warrant an issue.
+Please report any bugs on the GitHub issues page (https://github.com/Chris-Kimmel/prsconv3/issues). Even if they don't get fixed, it's helpful to have a list of everything wrong with the code. Poorly documented features also warrant an issue.
 
 ## Roadmap
 - [x] Start with prscovn2.py. Update its CLI in a way that makes sense for a tool that will accept multiple kinds of file input, not just `.tombo.per_read_stats` files. Make the user specify long or wide-format output for `.tombo.per_read_stats` files.
