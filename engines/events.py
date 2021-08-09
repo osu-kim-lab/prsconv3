@@ -11,10 +11,6 @@ chris.kimmel@live.com
 # pylint: disable=invalid-name,global-statement,import-outside-toplevel
 
 
-from warnings import warn
-from inspect import cleandoc
-
-
 DEFAULT_CHRM = 'truncated_hiv_rna_genome'
 
 SLOTS_TO_IMPORT = [
@@ -22,6 +18,7 @@ SLOTS_TO_IMPORT = [
     'norm_stdev',
     'start',
     'length',
+    'base',
 ]
 
 
@@ -31,7 +28,13 @@ def register(subparsers):
 
     parser = subparsers.add_parser('events',
         help='fast5 events tables from directories of fast5 files (this '
-            'includes dwell times)')
+        'includes dwell times)',
+        description='For dwell times in wide form, specify "--wide length".')
+
+    parser.add_argument('--wide', metavar='COLNAME', choices=SLOTS_TO_IMPORT,
+        help='If this option is specified, only COLNAME is included in the '
+        'output, and the data is printed in a wide format (rather than the '
+        'default long format).')
 
     parser.add_argument('--strand', metavar='STRAND', default='+',
         choices=['+', '-'], help='Only reads mapped to this strand will appear '
@@ -136,7 +139,13 @@ def run(args):
         .get_cs_reads(args.chrm, args.strand)
     )
 
-    (
-        read_list_to_df(cs_reads, SLOTS_TO_IMPORT, args.corr_grp)
-        .to_csv(args.output_path)
-    )
+    results = read_list_to_df(cs_reads, SLOTS_TO_IMPORT, args.corr_grp)
+    if args.wide:
+        results = results.reset_index().pivot(
+            index='read_id',
+            columns='pos_0b',
+            values=args.wide
+        )
+        results.to_csv(args.output_path, index=True)
+    else:
+        results.to_csv(args.output_path, index=False)
