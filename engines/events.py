@@ -86,9 +86,12 @@ def read_to_df(read, slots_to_import, corr_grp):
     slot_contents = zip(*tombo_helper.get_multiple_slots_read_centric(read,
         SLOTS_TO_IMPORT, corr_grp))
 
+    # sometimes it's a numpy bytes object, sometimes it's not
+    if isinstance(read_id, bytes): read_id = read_id.decode()
+
     return (
         pd.DataFrame(slot_contents, columns=slots_to_import)
-        .assign(read_id=read_id.decode())
+        .assign(read_id=read_id)
         .set_index(index_0b)
         .rename_axis('pos_0b')
     )
