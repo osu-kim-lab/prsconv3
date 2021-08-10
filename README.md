@@ -37,6 +37,7 @@ Please report any bugs on the GitHub issues page (https://github.com/Chris-Kimme
 - [x] Add browser-file-->CSV converters (wiggle and bedgraph).
 - [x] Add direct `.tombo.stats`-->CSV converter
 - [x] Add engine to extract events tables from fast5s
+- [ ] Make a user-friendlier interface and improve documentation
 - [ ] Get test coverage as high as I can (or add any tests at all)
 - [ ] Package and upload to PyPI
 - [ ] Extract additional info from fast5s, such as ammeter sampling frequency and available corrected groups
