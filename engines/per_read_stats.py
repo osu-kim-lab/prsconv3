@@ -12,11 +12,12 @@ def register(subparsers):
     Add a subparser to the provided subparsers object
     '''
     parser = subparsers.add_parser('per_read_stats',
-                                   help='.tombo.per_read_stats files')
-
-    parser.add_argument('wide_or_long', help='Export data in wide form or long '
-                        + 'form', metavar='LONG_OR_WIDE', type=str,
-                        choices=['long', 'wide'])
+        help='.tombo.per_read_stats files', description='This command converts '
+        '.tombo.per_read_stats files into CSV files.\n\nThe user should '
+        'specify --wide-or-long=wide to obtain a CSV file with rows '
+        'corresponding to reads and columns corresponding to nucleotides '
+        '(default), or --wide-or-long=long to obtain a CSV file as "tidy data" '
+        '(aka relational data or long-format data).')
 
     parser.add_argument('prs_path', help='Path of the .tombo.per_read_stats '
                         + 'file', metavar='PRS-FILEPATH', type=str)
@@ -24,6 +25,10 @@ def register(subparsers):
     parser.add_argument('output_path', help='Path of the CSV file to be '
                         + 'written (including the .csv extension)',
                         metavar='OUTPUT-FILEPATH', type=str)
+
+    parser.add_argument('--wide_or_long', help='Export data in wide form or '
+                        'long form', metavar='LONG_OR_WIDE', type=str,
+                        choices=['long', 'wide'], default='wide')
 
     parser.add_argument('--chromosome', help='Name of the chromosome for '
                         + 'which to give statistics (DEFAULT: '
