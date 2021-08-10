@@ -17,11 +17,14 @@ ENGINE_LIST = [
     'events',
 ]
 
-DESC = "Convert Tombo files to CSV files"
+DESC = """Convert Tombo files to CSV files
+
+Written July-August 2021 by Chris Kimmel for the Kim Lab at the Ohio State
+College of Veterinary Medicine"""
 EPILOG = "version 3.0"
 parser = argparse.ArgumentParser(description=DESC, epilog=EPILOG)
 
-HELP = "which kind of input file to convert to CSV"
+HELP = "Which kind of input file to convert to CSV"
 subparsers = parser.add_subparsers(help=HELP, dest='which_kind')
 
 # Import all the engine modules and call the "register" method on each one

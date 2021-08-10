@@ -7,23 +7,40 @@ chris.kimmel@live.com
 '''
 
 from warnings import warn
-from sys import stdin, stdout
+
+
+DESCRIPTION = '''
+Convert wiggle and bedgraph files to CSV files.
+
+Please note that this tool does not work for all wiggle and bedgraph files. It
+was only built to work on special cases.
+
+Usage Examples:
+python3 prsconv3 browser-files --wig -c "dampened_frac" d_frac.wig out.csv
+python3 prsconv3 browser-files --bed -c "covg" coverage.bed out.csv
+'''
 
 
 def register(subparsers):
     '''Attach a subcommand to the given subparsers object, through which the
     user will access the functionality of this module.'''
 
-    parser = subparsers.add_parser('browser_files',
-        help='.wig and .bed files (streams from stdin to stdout)')
-    
-    parser.add_argument('wig_or_bed', metavar='WIG_OR_BED',
-        choices=['wig', 'bed'], help='Which type of file to expect '\
-        '("wig" for wiggle or "bed" for bedgraph)')
+    parser = subparsers.add_parser('browser-files', description=DESCRIPTION,
+        help='wiggle and bedgraph files')
 
-    parser.add_argument('column_name', metavar='COLNAME',
+    grp = parser.add_mutually_exclusive_group(required=True)
+    grp.add_argument('--wig', help='Use when the input is a wiggle file')
+    grp.add_argument('--bed', help='Use when the input is a bedgraph file')
+
+    parser.add_argument('-c', '--column-name', metavar='COLNAME',
         help='What to name the data column of the output CSV '\
         '(suggestions: "covg", "dampened_frac", etc.)')
+
+    parser.add_argument('input-filepath', metavar='INPUT-FILEPATH',
+        help='The wiggle or bedgraph file to read.')
+
+    parser.add_argument('output-filepath', metavar='OUTPUT-FILEPATH',
+        help='Filepath to the output CSV, including the .csv extension.')
 
 
 def write_bed_to_csv(inbuffer, outbuffer, column_name):
@@ -67,14 +84,13 @@ def write_wig_to_csv(inbuffer, outbuffer, column_name):
 
 
 def run(args):
-    MESS = "The browser-file tools in this package are hacked together to "\
-           "work on simple cases. This code is not suitable for all "\
-           "wiggle/bedgraph files."
+    MESS = "The browser-file tools in this package are built to work on " \
+        "simple cases. This code is not suitable for all wiggle/bedgraph files."
     warn(MESS)
-    if args.wig_or_bed == 'wig':
-        write_wig_to_csv(stdin, stdout, args.column_name)
-    elif args.wig_or_bed == 'bed':
-        write_bed_to_csv(stdin, stdout, args.column_name)
-    else:
-        raise NotImplementedError(
-            f'Unrecognized wig_or_bed option {args.wig_or_bed}')
+
+    with open(args.input_filepath, 'rt') as input_filepath:
+        with open(args.output_filepath, 'wt') as output_filepath:
+            if args.wig:
+                write_wig_to_csv(output_filepath, output_filepath, args.column_name)
+            elif args.bed:
+                write_bed_to_csv(output_filepath, output_filepath, args.column_name)
