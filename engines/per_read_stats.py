@@ -29,6 +29,26 @@ python prsconv3 per-read-stats --long tests/file/23456_WT_cellular.tombo.per_rea
 '''
 
 
+DESCRIPTION = '''
+This command converts .tombo.per_read_stats files into CSV files.
+
+As with some other commands in this package, the user must specify either
+"--wide" or "--long" when running the command. The former results in CSV files
+with one row per read and one column per genomic position, while the latter
+results in a CSV file with columns "read_id", "pos_0b", and "stat"
+
+Because of the way Tombo's Python interface works, the user must also specify a
+chromosome, strand, and region of the genome for which he/she wants statistics.
+The defaults (bases zero through one billion on the "+" strand of the
+"truncated_hiv_rna_genome") are correct for the analysis our team was doing at
+the time this tool was written.
+
+Usage Examples:
+python prsconv3 per-read-stats --wide tests/files/23456_WT_cellular.tombo.per_read_stats output.csv
+python prsconv3 per-read-stats --long tests/file/23456_WT_cellular.tombo.per_read_stats output.csv
+'''
+
+
 def register(subparsers):
     '''
     Register a subparser with the provided subparsers object

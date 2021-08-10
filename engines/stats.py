@@ -24,6 +24,17 @@ Usage Examples:
 python prsconv3 stats tests/files/stats/23456_WT_cellular.tombo.stats 23456_WT_cellular.csv
 '''
 
+DESCRIPTION = '''
+Convert .tombo.stats files to CSV files
+
+The output CSV file will have columns named "pos_0b", "chrm", "strand",
+"damp_frac", and "frac". Additional columns may be present if other statistics
+are stored in the statistics file.
+
+Usage Examples:
+python prsconv3 stats tests/files/stats/23456_WT_cellular.tombo.stats 23456_WT_cellular.csv
+'''
+
 
 def register(subparsers):
     '''Add a subcommand to the given subparsers object. The subcommand will

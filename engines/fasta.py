@@ -31,6 +31,25 @@ Usage Example:
 python prsconv3 fasta tests/files/fasta/RNA_section__454_9627.fa RNA_section__454_9627.fa.csv
 '''
 
+
+DESCRIPTION = '''
+This command converts FASTA files to CSV files. The FASTA file must be of a
+certain form.
+
+The first line of the FASTA should begin with a ">", and the remainder of the
+line should be a description of the sequence. The rest of the file should
+be the sequence associated with this description, with no whitespace other than
+newlines.
+
+In particular, the code will break, perhaps without warning, if there is more
+than one sequence in the FASTA file.
+
+The output CSV has columns "description", "pos_0b", and "base".
+
+Usage Example:
+python prsconv3 fasta tests/files/fasta/RNA_section__454_9627.fa RNA_section__454_9627.fa.csv
+'''
+
 def register(subparsers):
     '''Add a subcommand to the subparsers object, thereby exposing the
     methods in this module via the command-line interface.'''
