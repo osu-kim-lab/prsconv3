@@ -7,6 +7,8 @@ Chris Kimmel
 chris.kimmel@live.com
 '''
 
+from argparse import RawTextHelpFormatter
+
 
 # pylint: disable=invalid-name,global-statement,import-outside-toplevel
 
@@ -21,6 +23,36 @@ SLOTS_TO_IMPORT = [
     'base',
 ]
 
+DESCRIPTION = '''
+Extract the events tables from all fast5s in a directory to a single CSV file.
+
+This code can write the CSV in either of two formats. By default, it prints
+information in "tidy" form (also known as "long" or "tall" format).
+Alternatively, the user can use the "--wide" option to format the output as
+"wide" data, with a row for every read and a column for every nucleotide
+position.
+
+The default "tidy" output includes, in addition to "read_id" and "pos_0b"
+columns, all five columns of the events table:
+    - norm_mean (event-mean current levels, as normalized during resquiggling)
+    - norm_stdev (standard deviation of current levels; by default Tombo leaves
+        this column of the events table blank to save time.)
+    - start (index of the ammeter measurement associated during resquiggling to
+        the start of this event)
+    - length (number of ammeter measurements associated during resquiggling to
+        this event)
+    - base (basecalled base; sometimes omitted from events table)
+
+Because of the limits of "wide-format" data, the user must specify which column
+he/she wants when using the "--wide" option (e.g., "--wide=norm-mean" to get
+the current levels).
+
+Usage Examples:
+from sys import stdin, stdout
+python prsconv3 events --wide=length tests/files/fast5_dir dwell_times.csv
+python prsconv3 events tests/files/fast5_dir events_tables.csv
+'''
+
 
 def register(subparsers):
     '''Add a subcommand to the subparsers object, thereby exposing the
@@ -28,8 +60,8 @@ def register(subparsers):
 
     parser = subparsers.add_parser('events',
         help='fast5 events tables from directories of fast5 files (this '
-        'includes dwell times)',
-        description='For dwell times in wide form, specify "--wide length".')
+        'includes dwell times and current levels)', description=DESCRIPTION,
+        formatter_class=RawTextHelpFormatter)
 
     parser.add_argument('--wide', metavar='COLNAME', choices=SLOTS_TO_IMPORT,
         help='If this option is specified, only COLNAME is included in the '
@@ -40,7 +72,7 @@ def register(subparsers):
         choices=['+', '-'], help='Only reads mapped to this strand will appear '
         'in output ("+" or "-")')
 
-    parser.add_argument('--chrm', metavar='CORRECTED-GROUP',
+    parser.add_argument('--chrm', metavar='CHROMOSOME',
         help='Only reads mapped to this chromosome will appear in output',
         default='truncated_hiv_rna_genome')
 
@@ -89,15 +121,22 @@ def read_to_df(read, slots_to_import, corr_grp):
     slot_contents = zip(*tombo_helper.get_multiple_slots_read_centric(read,
         SLOTS_TO_IMPORT, corr_grp))
 
-    # sometimes it's a numpy bytes object, sometimes it's not
+    # sometimes it's a numpy bytes object, sometimes it's a numpy str object
     if isinstance(read_id, bytes): read_id = read_id.decode()
 
-    return (
+    retval = (
         pd.DataFrame(slot_contents, columns=slots_to_import)
         .assign(read_id=read_id)
         .set_index(index_0b)
         .rename_axis('pos_0b')
     )
+
+    # decode the "base" column if it has type bytes
+    if 'base' in retval.columns:
+        if isinstance(retval['base'].iloc[0], bytes):
+            retval['base'] = [x.decode() for x in retval['base']]
+
+    return retval
 
 
 def read_list_to_df(read_list, slots_to_import, corr_grp):
