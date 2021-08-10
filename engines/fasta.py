@@ -6,7 +6,11 @@ Chris Kimmel
 chris.kimmel@live.com
 '''
 
+# pylint: disable=invalid-name,global-statement,import-outside-toplevel
+
+
 from warnings import warn
+from argparse import RawTextHelpFormatter
 
 
 DESCRIPTION = '''
@@ -32,12 +36,12 @@ def register(subparsers):
     methods in this module via the command-line interface.'''
 
     parser = subparsers.add_parser('fasta', help='.fasta files',
-        description=DESCRIPTION)
+        description=DESCRIPTION, formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument('input-filepath', metavar='INPUT-FILEPATH',
+    parser.add_argument('input_filepath', metavar='INPUT-FILEPATH',
         help='The FASTA file to read')
 
-    parser.add_argument('output-filepath', metavar='OUTPUT-FILEPATH',
+    parser.add_argument('output_filepath', metavar='OUTPUT-FILEPATH',
         help='Where to write the CSV output (including the .csv extension)')
 
 
@@ -69,9 +73,11 @@ def fasta_to_list_of_triples(inbuffer):
 
 
 def run(args):
+    '''This subroutine is called when the user selects the "fasta" module
+    from the command line.'''
     global pd
     import pandas as pd
-    
+
     MESS = 'This module can currently only accept a FASTA file in which the '\
            'first line is a ">" identifier, and the remaining lines are the '\
            'corresponding nucleotide sequence.'
@@ -80,6 +86,6 @@ def run(args):
     with open(args.input_filepath, 'rt') as input_file:
         rows = fasta_to_list_of_triples(input_file)
 
-    with open(args.output_filepath, 'wr') as output_file:
+    with open(args.output_filepath, 'wt') as output_file:
         output_file.write(','.join(['description', 'pos_0b', 'base']) + '\n')
         output_file.write('\n'.join(','.join(row) for row in rows) + '\n')

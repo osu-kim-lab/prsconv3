@@ -7,6 +7,8 @@ Chris Kimmel
 chris.kimmel@live.com
 '''
 
+from argparse import RawTextHelpFormatter
+
 
 # pylint: disable=invalid-name,global-statement,import-outside-toplevel
 
@@ -58,7 +60,8 @@ def register(subparsers):
 
     parser = subparsers.add_parser('events',
         help='fast5 events tables from directories of fast5 files (this '
-        'includes dwell times and current levels)', description=DESCRIPTION)
+        'includes dwell times and current levels)', description=DESCRIPTION,
+        formatter_class=RawTextHelpFormatter)
 
     parser.add_argument('--wide', metavar='COLNAME', choices=SLOTS_TO_IMPORT,
         help='If this option is specified, only COLNAME is included in the '
@@ -69,7 +72,7 @@ def register(subparsers):
         choices=['+', '-'], help='Only reads mapped to this strand will appear '
         'in output ("+" or "-")')
 
-    parser.add_argument('--chrm', metavar='CORRECTED-GROUP',
+    parser.add_argument('--chrm', metavar='CHROMOSOME',
         help='Only reads mapped to this chromosome will appear in output',
         default='truncated_hiv_rna_genome')
 
@@ -118,15 +121,22 @@ def read_to_df(read, slots_to_import, corr_grp):
     slot_contents = zip(*tombo_helper.get_multiple_slots_read_centric(read,
         SLOTS_TO_IMPORT, corr_grp))
 
-    # sometimes it's a numpy bytes object, sometimes it's not
+    # sometimes it's a numpy bytes object, sometimes it's a numpy str object
     if isinstance(read_id, bytes): read_id = read_id.decode()
 
-    return (
+    retval = (
         pd.DataFrame(slot_contents, columns=slots_to_import)
         .assign(read_id=read_id)
         .set_index(index_0b)
         .rename_axis('pos_0b')
     )
+
+    # decode the "base" column if it has type bytes
+    if 'base' in retval.columns:
+        if isinstance(retval['base'].iloc[0], bytes):
+            retval['base'] = [x.decode() for x in retval['base']]
+
+    return retval
 
 
 def read_list_to_df(read_list, slots_to_import, corr_grp):

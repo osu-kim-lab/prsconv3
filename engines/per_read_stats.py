@@ -3,11 +3,10 @@ This module contains the code and interface for a tool that converts
 .tombo.per_read_stats files to CSV files
 '''
 
-# pylint: disable=invalid-name,redefined-outer-name
+# pylint: disable=invalid-name,redefined-outer-name,global-statement,import-outside-toplevel
 
 
-import os.path
-import cli # Module from this directory that defines an argparse parser
+from argparse import RawTextHelpFormatter
 
 
 DESCRIPTION = '''
@@ -35,20 +34,23 @@ def register(subparsers):
     Register a subparser with the provided subparsers object
     '''
     parser = subparsers.add_parser('per-read-stats', description=DESCRIPTION,
-                        help='.tombo.per_read_stats files')
+                        help='.tombo.per_read_stats files',
+                        formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument('input-filepath', help='Path of the .tombo.per_read_stats '
+    parser.add_argument('input_filepath', help='Path of the .tombo.per_read_stats '
                         + 'file to read', metavar='PRS-FILEPATH', type=str)
 
-    parser.add_argument('output-filepath', help='Path of the CSV file to be '
+    parser.add_argument('output_filepath', help='Path of the CSV file to be '
                         + 'written (including the .csv extension)',
                         metavar='OUTPUT-FILEPATH', type=str)
 
-    grp = parser.add_mutually_exclusive_group(require=True)
+    grp = parser.add_mutually_exclusive_group(required=True)
     grp.add_argument('--wide', help='output wide-format data, with a row for '
-                        'each read and a column for each nucleotide position')
+                     'each read and a column for each nucleotide position',
+                     action='store_true')
     grp.add_argument('--long', help='output long-format data, with columns '
-                        '"read_id", "pos_0b", and "stat"')
+                     '"read_id", "pos_0b", and "stat"',
+                     action='store_true')
 
     parser.add_argument('--chromosome', help='Name of the chromosome for '
                         + 'which to give statistics (DEFAULT: '
@@ -70,11 +72,15 @@ def register(subparsers):
 def recarray_to_df(recarray):
     '''Convert record array output from tombo.tombo_stats.PerReadStatistics
     into a one-column pandas dataframe with a two-level index ['read_id',
-    'pos'] named "stat"'''
+    'pos_0b'] named "stat"'''
+
+    global pd
+    import pandas as pd
+
     return (
         pd.DataFrame(recarray)
-        .set_index(['read_id', 'pos'])
-        .rename({'pos': 'pos_zb'}, axis=1)
+        .rename({'pos': 'pos_0b'}, axis=1)
+        .set_index(['read_id', 'pos_0b'])
         .rename_axis('stat', axis=1)
     )
 
@@ -92,7 +98,7 @@ def df_to_csv(series, output_path, wide_or_long):
         (
             series
             .rename_axis('stat_level', axis=1)
-            .unstack('pos')
+            .unstack('pos_0b')
             .stack('stat_level')
             .reset_index('stat_level', drop=True)
             .to_csv(output_path)
@@ -105,8 +111,9 @@ def df_to_csv(series, output_path, wide_or_long):
 
 
 def run(args):
-    global pd
-    import pandas as pd
+    '''This subroutine is called when the user selects the "fasta" module
+    from the command line.'''
+
     from tombo import tombo_helper, tombo_stats
 
     wide_or_long = 'wide' if args.wide else 'long'

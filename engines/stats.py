@@ -7,7 +7,11 @@ Chris Kimmel
 chris.kimmel@live.com
 '''
 
-from warnings import warn
+# pylint: disable=invalid-name,global-statement,import-outside-toplevel
+
+
+from argparse import RawTextHelpFormatter
+
 
 DESCRIPTION = '''
 Convert .tombo.stats files to CSV files
@@ -26,25 +30,31 @@ def register(subparsers):
     expose the functionality of this module via the command-line.
     '''
     parser = subparsers.add_parser('stats', help='.tombo.stats files',
-                        description=DESCRIPTION)
+                        description=DESCRIPTION,
+                        formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument('input-filepath', help='Path of the .tombo.stats '
+    parser.add_argument('input_filepath', help='Path of the .tombo.stats '
                         + 'file', metavar='STATS-FILEPATH', type=str)
 
-    parser.add_argument('output-filepath', help='Path of the CSV file to be '
+    parser.add_argument('output_filepath', help='Path of the CSV file to be '
                         + 'written (including the .csv extension)',
                         metavar='OUTPUT-FILEPATH', type=str)
 
 
 def stats_to_df(stats_path):
     '''Open a Tombo statistics file and return it as a pandas DataFrame'''
+
+    global TomboStats, pd
+    from tombo.tombo_stats import TomboStats
+    import pandas as pd
+
     ts = TomboStats(stats_path)
     assert ts.is_model_stats, "This appears not to be a ModelStats object. "\
         "It's probably a LevelStats object instead. This module was only tested "\
         "on Tombo statistics files produced by tombo "\
         "model_sample_compare."
     to_concat = []
-    for chrm, strand, start, end, block_stats in ts:
+    for chrm, strand, start, end, block_stats in ts: # pylint: disable=unused-variable
 
         # Correct for the fact that Tombo stores damp_frac and frac upside
         # down in ModelStats:
@@ -62,10 +72,8 @@ def stats_to_df(stats_path):
 
 
 def run(args):
-    global TomboStats
-    from tombo.tombo_stats import TomboStats
-    global pd
-    import pandas as pd
+    '''This subroutine is called when the user selects the "stats" module
+    from the command line.'''
 
     MESS = '''Support for .tombo.stats files is still experimental.
 
