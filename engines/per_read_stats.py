@@ -14,7 +14,7 @@ def register(subparsers):
     parser = subparsers.add_parser('per_read_stats',
                                    help='.tombo.per_read_stats files')
 
-    parser.add_argument('wide_or_long', help='Export data in wide for or long '
+    parser.add_argument('wide_or_long', help='Export data in wide form or long '
                         + 'form', metavar='LONG_OR_WIDE', type=str,
                         choices=['long', 'wide'])
 
