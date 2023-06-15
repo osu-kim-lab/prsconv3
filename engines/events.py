@@ -172,6 +172,7 @@ def run(args):
     from tombo import tombo_helper
     import numpy as np
     import pandas as pd
+    from tqdm import tqdm
 
     cs_reads = (
         tombo_helper.TomboReads(args.fast5_dirs)
@@ -180,11 +181,29 @@ def run(args):
 
     results = read_list_to_df(cs_reads, SLOTS_TO_IMPORT, args.corr_grp)
     if args.wide:
-        results = results.reset_index().pivot(
-            index='read_id',
-            columns='pos_0b',
-            values=args.wide
-        )
+        read_indexed_df = results.reset_index().set_index("read_id")
+        indicies = read_indexed_df.index.unique()
+
+        chunk_size = 1000
+        chunks = [x for x in range(0, indicies.size, chunk_size)] + [indicies.size]
+        pivot_chunks = []
+
+        for i in tqdm(range(0, len(chunks) - 1)):
+            idxs = indicies[chunks[i]:chunks[i + 1]]
+            chunk_df = read_indexed_df.loc[idxs]
+            pivot_chunk_df = chunk_df.pivot(columns='pos_0b', values=args.wide)
+            pivot_chunks.append(pivot_chunk_df)
+
+        results = pd.concat(pivot_chunks, axis=0)
+
+        # These should be equivalent, but the above works with very large dfs
+
+        # results = results.reset_index().pivot(
+        #     index='read_id',
+        #     columns='pos_0b',
+        #     values=args.wide
+        # )
+
         results.to_csv(args.output_path, index=True)
     else:
         results.to_csv(args.output_path, index=False)
